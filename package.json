@@ -1,0 +1,20 @@
+{
+    "name": "ts-interface-to-json-schema",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/node": "^18.11.19",
+        "parent-module": "^3.0.0",
+        "ts-morph": "^17.0.1"
+    },
+    "devDependencies": {
+        "typescript": "^4.9.5"
+    }
+}
