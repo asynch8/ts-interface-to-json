@@ -1,26 +1,38 @@
-const util = require('util')
-import { type } from 'os';
 import keys from './ts-interface'
-export default function convert(typeName: string, path: string = null, requiredFrom: string): any {
-    const types = keys(typeName, path)
+
+interface Type {
+    name?: string;
+    type?: string;
+    optional?: boolean;
+    keys?: Type[];
+    items?: Type;
+    required?: string[];
+    format?: string;
+    nullable?: boolean;
+    properties?: { [key: string]: Type };
+}
+
+export default function convert(typeName: string, path: string): any {
+    const types = keys(typeName, path);
+    // console.log({ types })
     const schema = {
         type: 'object',
         properties: Object.assign(
             {},
-            ...types.map((type) => {
+            ...types.map((type: any) => {
                 return {
                     [type.name]: typeToObject(type)
                 }
             })
         ),
-        required: types.filter(e => !e.optional).map(e => e.name)
+        required: types.filter((e: any) => !e.optional).map((e: any) => e.name)
     };
     //console.log(util.inspect(schema, false, null, true))
     return schema 
 }
 
-function typeToObject(type) {
-    console.log(type)
+function typeToObject(type: any): Type {
+    // console.log(type)
     if (type.type.endsWith('[]')) {
         return {
             type: 'array',
@@ -45,11 +57,11 @@ function typeToObject(type) {
         return {
             type: 'object',
             properties: Object.assign({}, ...type.keys.map(
-                typeKey => ({
-                    [typeKey.name]: typeToObject(typeKey)
+                (typeKey: Type) => ({
+                    [typeKey.name as string]: typeToObject(typeKey)
                 })
             )),
-            required: type.keys.filter(e => !e.optional).map(e => e.name)
+            required: type.keys.filter((e: any) => !e.optional).map((e: any) => e.name)
         }
     } else if (type.type === 'any') {
         return {}
@@ -59,8 +71,8 @@ function typeToObject(type) {
             format: 'date-time'
         }
     } else if (type.type === 'oneOf') {
-        const nullable = type.types.find((t) => { return t.type === 'null' });
-        const nonnull = type.types.filter((t) => { return t.type !== 'null' });
+        const nullable = type.types.find((t: any) => { return t.type === 'null' });
+        const nonnull = type.types.filter((t: any) => { return t.type !== 'null' });
         return Object.assign(
             {},
             (
@@ -73,7 +85,7 @@ function typeToObject(type) {
             )
         );
     } else {
-        console.log(type.type)
+        // console.log(type.type)
         throw new Error('UnimplementedType')
     }
 }

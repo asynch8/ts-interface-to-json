@@ -1,13 +1,10 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "es2017",
       "module": "commonjs",
       "outDir": "dist",
       "sourceMap": true,
     },
-    "files": [
-      "./node_modules/@types/node/index.d.ts"
-    ],
     "include": [
       "src/**/*.ts",
       "types/**/*"
@@ -15,4 +12,4 @@
     "exclude": [
       "node_modules"
     ]
-  }
+}

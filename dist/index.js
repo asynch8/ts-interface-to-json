@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const util = require('util');
-const ts_interface_1 = __importDefault(require("./ts-interface"));
-function convert(typeName, path = null, requiredFrom) {
+const ts_interface_1 = require("./ts-interface");
+function convert(typeName, path) {
     const types = (0, ts_interface_1.default)(typeName, path);
+    // console.log({ types })
     const schema = {
         type: 'object',
         properties: Object.assign({}, ...types.map((type) => {
@@ -14,14 +11,14 @@ function convert(typeName, path = null, requiredFrom) {
                 [type.name]: typeToObject(type)
             };
         })),
-        required: types.filter(e => !e.optional).map(e => e.name)
+        required: types.filter((e) => !e.optional).map((e) => e.name)
     };
     //console.log(util.inspect(schema, false, null, true))
     return schema;
 }
 exports.default = convert;
 function typeToObject(type) {
-    console.log(type);
+    // console.log(type)
     if (type.type.endsWith('[]')) {
         return {
             type: 'array',
@@ -49,10 +46,10 @@ function typeToObject(type) {
     else if (type.type === 'object') {
         return {
             type: 'object',
-            properties: Object.assign({}, ...type.keys.map(typeKey => ({
+            properties: Object.assign({}, ...type.keys.map((typeKey) => ({
                 [typeKey.name]: typeToObject(typeKey)
             }))),
-            required: type.keys.filter(e => !e.optional).map(e => e.name)
+            required: type.keys.filter((e) => !e.optional).map((e) => e.name)
         };
     }
     else if (type.type === 'any') {
@@ -72,7 +69,7 @@ function typeToObject(type) {
             : typeToObject(nonnull[0])), (nullable ? { nullable: true } : {}));
     }
     else {
-        console.log(type.type);
+        // console.log(type.type)
         throw new Error('UnimplementedType');
     }
 }

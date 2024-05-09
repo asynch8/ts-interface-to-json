@@ -3,7 +3,8 @@ import {
     VariableDeclarationKind,
     InterfaceDeclaration,
     SyntaxKind,
-    SourceFile
+    SourceFile,
+    ImportDeclaration
 } from "ts-morph";
 import * as path from 'path'
 
@@ -14,22 +15,29 @@ function isNativeType(typeString: string) {
 
 
 // interfaceName is name of the interface file below the root, ./src is considered the root
-const Keys = (interfaceName: string, definitionFile?: string): any => {
-    console.log('definitionfile', definitionFile)
+const Keys = (interfaceName: string, definitionFile: string): any => {
+    // console.log('definitionfile', definitionFile)
     const project = new Project();
     let sourceFile: SourceFile
+
+    // Add the file to look into
     try {
-        sourceFile = project.addSourceFileAtPath(definitionFile ?? `../shared/types.d.ts`);
+        // console.log('trying', definitionFile)
+        sourceFile = project.addSourceFileAtPath(definitionFile); 
     } catch (e) {
-        console.log('failed', e)
-        sourceFile = project.addSourceFileAtPath(`${definitionFile}.d.ts`);
+        // console.log('failed', e)
+        // Maybe should add .d.ts
+        sourceFile = project.addSourceFileAtPath(`${definitionFile}.ts`);
     }
     
     const imports = sourceFile.getImportDeclarations();
-    const node = sourceFile.getInterface(interfaceName)!;
+    // console.log(sourceFile.getInterfaces().map(i => i.getName())))
+    // TODO: Implement a way to get types defined using `type Foo = {}` syntax.
+    // Seems this would have to be the way: sourceFile.getTypeAliases().map(i => (i.getStructure().type as string).split('\r\n')
+    const node = sourceFile.getInterface(interfaceName);  // Get the interface node
     
     if (!node) {
-        console.error(interfaceName, definitionFile)
+        console.error('Failed to find the following:', { interfaceName, definitionFile });
         throw new Error('NoNode')
     }
 
@@ -39,19 +47,21 @@ const Keys = (interfaceName: string, definitionFile?: string): any => {
         const type = p.getType().getText();
         const name = p.getName();
         const optional = p.hasQuestionToken();
-        console.log({ actualType, type, name })
+        // console.log({ actualType, type, name })
         const types = type
-          .split('|')  // split by the pipe/union operator
+          .split('|')  // split by the union operator
           .map(e => e.trim())
           .map((e) => {
-            console.log('current type', e)
+            // console.log('current type', e)
            
             let temp: {[x: string]: any } = { type: e };
             if (!isNativeType(e)) {
+                // console.log('not native', e)
                 const propertySplit = e.split('.')
                 const [,splitName] = propertySplit;
                 if (e.startsWith('import("')) {
                     const importFile = e.split('"')[1]
+                    // console.log('import', importFile, e, interfaceName, splitName.replace('[]', ''))
                     temp = {
                         type: 'object',
                         keys: Keys(splitName.replace('[]', ''), importFile)
@@ -76,25 +86,33 @@ const Keys = (interfaceName: string, definitionFile?: string): any => {
                             
                         }
                     );
-                    console.log('Do something with imports')
-                    console.log(
-                        filtered[0], definitionFile, e, interfaceName)
-                    temp = {
-                        type: 'object',
-                        keys: Keys(
-                            splitName.replace('[]', ''),
-                            filtered[0].getModuleSpecifierSourceFile().getFilePath()
-                        )
+                    // console.log('Do something with imports')
+                    //console.log(
+                    //    filtered[0], definitionFile, e, interfaceName)
+                    if (filtered.length !== 0) {
+                        temp = {
+                            type: 'object',
+                            keys: Keys(
+                                splitName.replace('[]', ''),
+                                (filtered[0] as ImportDeclaration).getModuleSpecifierSourceFile()?.getFilePath().toString() ?? ''
+                            )
+                        }
                     }
+                    
                 }
             } 
-            console.log('adding', temp)
-            if (e.endsWith('[]')) {
+            
+            /*if (e.endsWith('[]')) {
+                temp.type = temp.type.replace(/\[\]$/, '');
+                console.log('adding', {
+                    type: 'array',
+                    items: temp
+                }, e)
                 return {
                     type: 'array',
                     items: temp
                 }
-            }
+            }*/
             
             return temp
           })
@@ -111,6 +129,7 @@ const Keys = (interfaceName: string, definitionFile?: string): any => {
         }
 
         if (type.endsWith('[]')) {
+            types[0].type = types[0].type.replace(/\[\]$/, '');
             return {
                 name,
                 type: 'array',
