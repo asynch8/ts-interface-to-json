@@ -84,6 +84,10 @@ function typeToObject(type: any): Type {
                 nullable ? { nullable: true} : {}
             )
         );
+    } else if (type.type === 'boolean') {
+        return {
+            type: 'boolean'
+        }
     } else {
         const error = new Error(`UnimplementedType: ${type.type}`);
         console.error('Error trying to convert type', { type, error })

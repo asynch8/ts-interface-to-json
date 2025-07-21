@@ -72,9 +72,15 @@ function typeToObject(type) {
             ? { oneOf: nonnull.map(typeToObject) }
             : typeToObject(nonnull[0])), (nullable ? { nullable: true } : {}));
     }
+    else if (type.type === 'boolean') {
+        return {
+            type: 'boolean'
+        };
+    }
     else {
-        console.log({ type });
-        throw new Error('UnimplementedType');
+        const error = new Error(`UnimplementedType: ${type.type}`);
+        console.error('Error trying to convert type', { type, error });
+        throw error;
     }
 }
 //# sourceMappingURL=index.js.map
