@@ -12,7 +12,7 @@ interface Type {
     properties?: { [key: string]: Type };
 }
 
-export default function convert(typeName: string, path: string): any {
+export function convert(typeName: string, path: string): any {
     const types = keys(typeName, path);
     // console.log({ types })
     const schema = {
@@ -85,7 +85,8 @@ function typeToObject(type: any): Type {
             )
         );
     } else {
-        // console.log(type.type)
-        throw new Error('UnimplementedType')
+        const error = new Error(`UnimplementedType: ${type.type}`);
+        console.error('Error trying to convert type', { type, error })
+        throw error;
     }
 }

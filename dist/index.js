@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.convert = void 0;
 const ts_interface_1 = __importDefault(require("./ts-interface"));
 function convert(typeName, path) {
     const types = (0, ts_interface_1.default)(typeName, path);
@@ -19,7 +20,7 @@ function convert(typeName, path) {
     //console.log(util.inspect(schema, false, null, true))
     return schema;
 }
-exports.default = convert;
+exports.convert = convert;
 function typeToObject(type) {
     // console.log(type)
     if (type.type.endsWith('[]')) {
@@ -72,7 +73,7 @@ function typeToObject(type) {
             : typeToObject(nonnull[0])), (nullable ? { nullable: true } : {}));
     }
     else {
-        // console.log(type.type)
+        console.log({ type });
         throw new Error('UnimplementedType');
     }
 }
